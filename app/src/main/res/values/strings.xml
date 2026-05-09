@@ -4,16 +4,21 @@
     <string name="destination_home">Home</string>
     <string name="destination_scan">Scan</string>
     <string name="destination_about">About</string>
+    <string name="navigation_back_home">Back to Home</string>
 
     <string name="home_heading">Banana Leaf Nutrient Check</string>
+    <string name="home_leaf_visual_content_description">Stylized banana leaf scan visual</string>
     <string name="home_body">This prototype uses AI to screen banana leaf images for possible nutrient-deficiency symptoms. It is not a replacement for laboratory testing or expert agricultural advice.</string>
-    <string name="home_caution_title">Preliminary screening only</string>
-    <string name="home_caution_body">Use future screening results as model suggestions with uncertainty, not field decisions.</string>
-    <string name="home_scan_action">Open image input</string>
-    <string name="home_about_action">View limitations</string>
+    <string name="home_caution_title">Important</string>
+    <string name="home_caution_body">This is a research prototype and NOT a validated agronomic tool. Results are for preliminary screening only.</string>
+    <string name="home_scan_action">Start Scan</string>
+    <string name="home_about_action">About the Model</string>
 
-    <string name="scan_heading">Image input</string>
+    <string name="scan_heading">Image Analysis Setup</string>
     <string name="scan_intro">Prepare a clear banana leaf photo before starting image screening.</string>
+    <string name="scan_image_source_section">Image source</string>
+    <string name="scan_preview_heading">Image Preview</string>
+    <string name="scan_privacy_note">Image will be processed locally on your device.</string>
     <string name="scan_guidance_title">Capture guidance</string>
     <string name="scan_guidance_body">Use one banana leaf, good lighting, minimal shadow, and fill the frame with the affected leaf area.</string>
     <string name="scan_take_photo_title">Take photo</string>
@@ -37,6 +42,7 @@
     <string name="scan_choose_image_action">Choose image</string>
     <string name="scan_change_image_action">Change image</string>
     <string name="scan_clear_image_action">Clear image</string>
+    <string name="scan_scan_again_action">Scan again</string>
     <string name="scan_analyze_action">Analyze image</string>
     <string name="scan_analyzing_action">Analyzing</string>
     <string name="scan_selected_image_label">Selected image preview</string>
@@ -55,8 +61,13 @@
     <string name="scan_dataset_caution_title">Dataset caution</string>
     <string name="scan_dataset_caution_body">Dataset caution: this class used maize-derived supplemental images and is not banana-validated.</string>
 
-    <string name="about_heading">About this prototype</string>
+    <string name="about_heading">About the Model</string>
     <string name="about_intro">This app supports classroom and research review of banana leaf nutrient-deficiency image screening.</string>
+    <string name="about_specs_title">Technical specifications</string>
+    <string name="about_architecture_label">Architecture</string>
+    <string name="about_architecture_value">MobileNetV2</string>
+    <string name="about_classes_label">Classes</string>
+    <string name="about_classes_value">11</string>
     <string name="about_purpose_title">Prototype purpose</string>
     <string name="about_purpose_body">This classroom/research prototype screens banana leaf images for possible nutrient-deficiency patterns using on-device AI.</string>
     <string name="about_privacy_body">Images are processed on this device for inference and are not uploaded by this app.</string>

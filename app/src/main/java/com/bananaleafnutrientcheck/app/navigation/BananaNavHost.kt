@@ -1,26 +1,23 @@
 package com.bananaleafnutrientcheck.app.navigation
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -43,22 +40,40 @@ fun BananaNavHost(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: AppDestination.Home.route
+    val isHome = currentRoute == AppDestination.Home.route
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                ),
-            )
+            if (!isHome) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                navController.navigateSingleTopTo(AppDestination.Home.route)
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_back_24),
+                                contentDescription = stringResource(R.string.navigation_back_home),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    ),
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
@@ -67,13 +82,6 @@ fun BananaNavHost(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            DestinationTabs(
-                currentRoute = currentRoute,
-                onDestinationSelected = { destination ->
-                    navController.navigateSingleTopTo(destination.route)
-                },
-            )
-
             NavHost(
                 navController = navController,
                 startDestination = AppDestination.Home.route,
@@ -108,31 +116,6 @@ fun BananaNavHost(
                     AboutScreen()
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DestinationTabs(
-    currentRoute: String,
-    onDestinationSelected: (AppDestination) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        AppDestination.entries.forEach { destination ->
-            FilterChip(
-                selected = currentRoute == destination.route,
-                onClick = { onDestinationSelected(destination) },
-                label = {
-                    Text(text = stringResource(destination.labelResId))
-                },
-            )
         }
     }
 }
