@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -85,6 +86,7 @@ fun ScanScreen(
     uiState: ScanUiState = ScanUiState(),
     onImageSelected: (String?) -> Unit = {},
     onClearImage: () -> Unit = {},
+    onAnalyzeImage: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -121,10 +123,49 @@ fun ScanScreen(
             onClearImage = onClearImage,
         )
 
-        CautionCard(
-            title = stringResource(R.string.scan_not_active_title),
-            body = stringResource(R.string.scan_not_active_body),
-        )
+        Button(
+            onClick = onAnalyzeImage,
+            enabled = uiState.canAnalyze,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+            shape = CardShape,
+        ) {
+            Text(
+                text = stringResource(
+                    if (uiState.isAnalyzing) {
+                        R.string.scan_analyzing_action
+                    } else {
+                        R.string.scan_analyze_action
+                    },
+                ),
+            )
+        }
+
+        if (uiState.isAnalyzing) {
+            InfoCard(
+                title = stringResource(R.string.scan_analyzing_title),
+                body = stringResource(R.string.scan_analyzing_body),
+            )
+        }
+
+        uiState.analysisError?.let {
+            ErrorCard(
+                title = stringResource(R.string.scan_error_title),
+                body = stringResource(R.string.scan_error_body),
+            )
+        }
+
+        uiState.result?.let { result ->
+            ResultCard(result = result)
+
+            if (result.showDatasetCaution) {
+                CautionCard(
+                    title = stringResource(R.string.scan_dataset_caution_title),
+                    body = stringResource(R.string.scan_dataset_caution_body),
+                )
+            }
+        }
     }
 }
 
@@ -217,6 +258,100 @@ private fun PhotoPickerCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ResultCard(
+    result: ScanResultUiModel,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = CardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CardTitle(text = stringResource(R.string.scan_result_title))
+            LabelValueBlock(
+                label = stringResource(R.string.scan_possible_result_label),
+                value = result.possibleResultText,
+            )
+            LabelValueBlock(
+                label = stringResource(R.string.scan_model_score_label),
+                value = result.topPrediction.scoreText,
+            )
+            Text(
+                text = result.confidenceText,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            BodyText(text = stringResource(R.string.scan_result_limitation_body))
+            BodyText(text = stringResource(R.string.scan_result_confirm_body))
+
+            CardTitle(text = stringResource(R.string.scan_other_classes_label))
+            result.otherPossibleClasses.forEach { prediction ->
+                PredictionRow(prediction = prediction)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PredictionRow(
+    prediction: ScanPredictionUiModel,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = prediction.resultText,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = prediction.scoreText,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun LabelValueBlock(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 
@@ -376,6 +511,34 @@ private fun CautionCard(
                 text = body,
                 style = MaterialTheme.typography.bodyMedium,
                 color = CautionContent,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorCard(
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = CardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CardTitle(text = title, color = MaterialTheme.colorScheme.onErrorContainer)
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
             )
         }
     }

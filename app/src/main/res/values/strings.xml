@@ -23,11 +23,23 @@
     <string name="scan_choose_image_action">Choose image</string>
     <string name="scan_change_image_action">Change image</string>
     <string name="scan_clear_image_action">Clear image</string>
+    <string name="scan_analyze_action">Analyze image</string>
+    <string name="scan_analyzing_action">Analyzing</string>
     <string name="scan_selected_image_label">Selected image preview</string>
-    <string name="scan_selected_image_body">This image is ready for preview only. Analysis is not active yet.</string>
+    <string name="scan_selected_image_body">This image is ready for on-device AI screening.</string>
     <string name="scan_selected_image_content_description">Selected banana leaf image preview</string>
-    <string name="scan_not_active_title">Analysis not active yet</string>
-    <string name="scan_not_active_body">This screen only previews a selected image. It does not run AI screening or show model results yet.</string>
+    <string name="scan_analyzing_title">Analyzing image</string>
+    <string name="scan_analyzing_body">Running on-device image preprocessing and model screening.</string>
+    <string name="scan_error_title">Image could not be analyzed</string>
+    <string name="scan_error_body">Choose a clear banana leaf image and try again.</string>
+    <string name="scan_result_title">AI screening result</string>
+    <string name="scan_possible_result_label">Possible result</string>
+    <string name="scan_model_score_label">Model score</string>
+    <string name="scan_other_classes_label">Other possible classes</string>
+    <string name="scan_result_limitation_body">This is an AI screening result, not a confirmed diagnosis.</string>
+    <string name="scan_result_confirm_body">Confirm with expert inspection or laboratory/soil testing.</string>
+    <string name="scan_dataset_caution_title">Dataset caution</string>
+    <string name="scan_dataset_caution_body">Dataset caution: this class used maize-derived supplemental images and is not banana-validated.</string>
 
     <string name="about_heading">About this prototype</string>
     <string name="about_intro">This app is being built for classroom and research review of on-device banana leaf nutrient screening.</string>
