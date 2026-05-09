@@ -1,0 +1,58 @@
+{
+  "model_name": "MobileNetV2 clean 11-class banana nutrient deficiency classifier",
+  "asset_file": "banana_mobilenetv2_11class.tflite",
+  "provided_bundle": "ticket004_model_assets.zip",
+  "original_source_archive": "banana_final_clean_architecture_outputs_20260509_043711.zip",
+  "source_run_name": "MobileNetV2_clean_11class_mixed_crop",
+  "dataset_name": "clean_11class_mixed_crop",
+  "architecture": "MobileNetV2",
+  "class_weight_mode": "none",
+  "input_shape": [
+    1,
+    224,
+    224,
+    3
+  ],
+  "input_dtype": "float32",
+  "output_shape": [
+    1,
+    11
+  ],
+  "output_dtype": "float32",
+  "label_order": [
+    "boron",
+    "calcium",
+    "healthy",
+    "iron",
+    "magnesium",
+    "manganese",
+    "nitrogen",
+    "phosphorous",
+    "potassium",
+    "sulphur",
+    "zinc"
+  ],
+  "preprocessing": {
+    "training_function": "tf.keras.applications.mobilenet_v2.preprocess_input",
+    "android_contract": "Decode RGB image, resize to 224x224, convert pixels from [0,255] to float32 [-1,1] using (pixel / 127.5) - 1.0.",
+    "color_order": "RGB",
+    "unresolved_questions": []
+  },
+  "metrics": {
+    "test_accuracy": 0.5702479338842975,
+    "macro_f1": 0.5183944906102849,
+    "weighted_f1": 0.5656703021114745,
+    "banana_true_sample_accuracy": 0.5508849557522124,
+    "banana_true_sample_macro_f1": 0.4478382805464736
+  },
+  "limitations": [
+    "Nitrogen and phosphorous are maize-derived supplemental classes, not banana-specific validated classes.",
+    "Manganese, iron, and magnesium remain weak or low-support classes.",
+    "Prototype is not field-validated and is not a validated agronomic decision product."
+  ],
+  "conversion": {
+    "tensorflow_version": "2.21.0",
+    "conversion_path": "Keras .keras -> SavedModel export -> TFLite",
+    "quantization": "none; float32 baseline for first Android integration"
+  }
+}

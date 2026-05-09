@@ -1,0 +1,11 @@
+boron
+calcium
+healthy
+iron
+magnesium
+manganese
+nitrogen
+phosphorous
+potassium
+sulphur
+zinc
