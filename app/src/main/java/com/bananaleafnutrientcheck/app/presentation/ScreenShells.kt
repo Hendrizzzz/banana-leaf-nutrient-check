@@ -1,10 +1,16 @@
 package com.bananaleafnutrientcheck.app.presentation
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -20,10 +26,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.bananaleafnutrientcheck.app.R
 
 private val CautionContainer = Color(0xFFFFF8E1)
@@ -72,7 +81,19 @@ fun HomeScreen(
 }
 
 @Composable
-fun ScanScreen(modifier: Modifier = Modifier) {
+fun ScanScreen(
+    uiState: ScanUiState = ScanUiState(),
+    onImageSelected: (String?) -> Unit = {},
+    onClearImage: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            onImageSelected(uri?.toString())
+        },
+    )
+
     ScreenContent(modifier = modifier) {
         ScreenHeading(text = stringResource(R.string.scan_heading))
         BodyText(text = stringResource(R.string.scan_intro))
@@ -86,9 +107,18 @@ fun ScanScreen(modifier: Modifier = Modifier) {
             title = stringResource(R.string.scan_take_photo_title),
             body = stringResource(R.string.scan_take_photo_body),
         )
-        PlaceholderCard(
-            title = stringResource(R.string.scan_choose_image_title),
-            body = stringResource(R.string.scan_choose_image_body),
+
+        PhotoPickerCard(
+            selectedImageUri = uiState.selectedImageUri,
+            hasSelectedImage = uiState.hasSelectedImage,
+            onChooseImage = {
+                imagePickerLauncher.launch(
+                    PickVisualMediaRequest(
+                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                    ),
+                )
+            },
+            onClearImage = onClearImage,
         )
 
         CautionCard(
@@ -120,6 +150,107 @@ fun AboutScreen(modifier: Modifier = Modifier) {
             title = stringResource(R.string.about_dataset_title),
             body = stringResource(R.string.about_dataset_body),
         )
+    }
+}
+
+@Composable
+private fun PhotoPickerCard(
+    selectedImageUri: String?,
+    hasSelectedImage: Boolean,
+    onChooseImage: () -> Unit,
+    onClearImage: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = CardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CardTitle(text = stringResource(R.string.scan_choose_image_title))
+            BodyText(
+                text = if (hasSelectedImage) {
+                    stringResource(R.string.scan_selected_image_body)
+                } else {
+                    stringResource(R.string.scan_choose_image_body)
+                },
+            )
+
+            if (hasSelectedImage && selectedImageUri != null) {
+                SelectedImagePreview(selectedImageUri = selectedImageUri)
+            }
+
+            Button(
+                onClick = onChooseImage,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+                shape = CardShape,
+            ) {
+                Text(
+                    text = stringResource(
+                        if (hasSelectedImage) {
+                            R.string.scan_change_image_action
+                        } else {
+                            R.string.scan_choose_image_action
+                        },
+                    ),
+                )
+            }
+
+            if (hasSelectedImage) {
+                OutlinedButton(
+                    onClick = onClearImage,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp),
+                    shape = CardShape,
+                ) {
+                    Text(text = stringResource(R.string.scan_clear_image_action))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectedImagePreview(
+    selectedImageUri: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.scan_selected_image_label),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(4f / 3f)
+                .clip(CardShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            AsyncImage(
+                model = selectedImageUri,
+                contentDescription = stringResource(
+                    R.string.scan_selected_image_content_description,
+                ),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        }
     }
 }
 

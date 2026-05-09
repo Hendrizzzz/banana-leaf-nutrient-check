@@ -20,6 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,6 +32,7 @@ import com.bananaleafnutrientcheck.app.R
 import com.bananaleafnutrientcheck.app.presentation.AboutScreen
 import com.bananaleafnutrientcheck.app.presentation.HomeScreen
 import com.bananaleafnutrientcheck.app.presentation.ScanScreen
+import com.bananaleafnutrientcheck.app.presentation.ScanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +89,14 @@ fun BananaNavHost(
                     )
                 }
                 composable(AppDestination.Scan.route) {
-                    ScanScreen()
+                    val scanViewModel: ScanViewModel = viewModel()
+                    val scanUiState by scanViewModel.uiState.collectAsStateWithLifecycle()
+
+                    ScanScreen(
+                        uiState = scanUiState,
+                        onImageSelected = scanViewModel::onPhotoPickerResult,
+                        onClearImage = scanViewModel::clearSelectedImage,
+                    )
                 }
                 composable(AppDestination.About.route) {
                     AboutScreen()

@@ -19,9 +19,15 @@
     <string name="scan_take_photo_title">Take photo</string>
     <string name="scan_take_photo_body">Photo capture will be connected in a later ticket.</string>
     <string name="scan_choose_image_title">Choose image</string>
-    <string name="scan_choose_image_body">Gallery selection will be connected in a later ticket.</string>
-    <string name="scan_not_active_title">Screening not active yet</string>
-    <string name="scan_not_active_body">This shell does not decode images or run model screening.</string>
+    <string name="scan_choose_image_body">Select one gallery image with Android Photo Picker. The app keeps only a safe image reference for this preview.</string>
+    <string name="scan_choose_image_action">Choose image</string>
+    <string name="scan_change_image_action">Change image</string>
+    <string name="scan_clear_image_action">Clear image</string>
+    <string name="scan_selected_image_label">Selected image preview</string>
+    <string name="scan_selected_image_body">This image is ready for preview only. Analysis is not active yet.</string>
+    <string name="scan_selected_image_content_description">Selected banana leaf image preview</string>
+    <string name="scan_not_active_title">Analysis not active yet</string>
+    <string name="scan_not_active_body">This screen only previews a selected image. It does not run AI screening or show model results yet.</string>
 
     <string name="about_heading">About this prototype</string>
     <string name="about_intro">This app is being built for classroom and research review of on-device banana leaf nutrient screening.</string>
