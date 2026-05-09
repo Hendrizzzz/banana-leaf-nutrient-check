@@ -56,14 +56,28 @@
     <string name="scan_dataset_caution_body">Dataset caution: this class used maize-derived supplemental images and is not banana-validated.</string>
 
     <string name="about_heading">About this prototype</string>
-    <string name="about_intro">This app is being built for classroom and research review of on-device banana leaf nutrient screening.</string>
+    <string name="about_intro">This app supports classroom and research review of banana leaf nutrient-deficiency image screening.</string>
+    <string name="about_purpose_title">Prototype purpose</string>
+    <string name="about_purpose_body">This classroom/research prototype screens banana leaf images for possible nutrient-deficiency patterns using on-device AI.</string>
+    <string name="about_privacy_body">Images are processed on this device for inference and are not uploaded by this app.</string>
+    <string name="about_model_title">Model summary</string>
+    <string name="about_model_body">The prototype uses a MobileNetV2 LiteRT/TensorFlow Lite CPU model with 11 output classes. The result screen shows an AI screening result, a possible result, a model score, and the other top-3 possible classes.</string>
+    <string name="about_metric_test_accuracy">Test accuracy: 57.02%</string>
+    <string name="about_metric_macro_f1">Macro F1: 51.84%</string>
+    <string name="about_metric_banana_macro_f1">Banana-only macro F1: 44.78%</string>
+    <string name="about_model_score_note">Model score is a model output used for class ranking, not field certainty.</string>
     <string name="about_limits_title">Limitations</string>
     <string name="about_limit_uncertainty">Model output can be uncertain and should be reviewed with field context.</string>
     <string name="about_limit_overlap">Visual symptoms can overlap across nutrient stress, lighting, crop age, and image quality.</string>
+    <string name="about_limit_screening">Treat the result as an AI screening result, not a field decision.</string>
     <string name="about_limit_testing">Confirm with expert inspection or laboratory/soil testing.</string>
-    <string name="about_limit_no_rates">Do not use this prototype to choose field treatments or application rates.</string>
-    <string name="about_classes_title">Class labels</string>
-    <string name="about_classes_body">Model label order: boron, calcium, healthy, iron, magnesium, manganese, nitrogen, phosphorous, potassium, sulphur, zinc.</string>
+    <string name="about_limit_no_rates">Do not use this prototype to choose field actions or application rates.</string>
+    <string name="about_classes_title">Class information</string>
+    <string name="about_classes_body">Shown in exact internal model label order. Internal labels are preserved for model output; display names make the screen easier to read.</string>
+    <string name="about_class_internal_label">Internal label: %1$s</string>
+    <string name="about_class_note_banana_deficiency">Banana leaf nutrient-deficiency class in the model; interpret as a possible visual pattern only.</string>
+    <string name="about_class_note_healthy">No visible deficiency pattern detected by this model.</string>
+    <string name="about_class_note_maize_supplemental">Maize-derived supplemental class; not banana-validated.</string>
     <string name="about_dataset_title">Dataset caution</string>
-    <string name="about_dataset_body">Nitrogen and phosphorous are maize-derived supplemental classes and are not banana-validated.</string>
+    <string name="about_dataset_body">Nitrogen and phosphorous used maize-derived supplemental images and are not banana-validated classes. The internal label remains phosphorous, while the UI may display Phosphorus for readability.</string>
 </resources>

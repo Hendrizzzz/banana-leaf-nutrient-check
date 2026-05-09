@@ -37,6 +37,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -205,21 +206,72 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         ScreenHeading(text = stringResource(R.string.about_heading))
         BodyText(text = stringResource(R.string.about_intro))
 
+        InfoCard(title = stringResource(R.string.about_purpose_title)) {
+            BodyText(text = stringResource(R.string.about_purpose_body))
+            BodyText(text = stringResource(R.string.about_privacy_body))
+        }
+
+        InfoCard(title = stringResource(R.string.about_model_title)) {
+            BodyText(text = stringResource(R.string.about_model_body))
+            BulletText(text = stringResource(R.string.about_metric_test_accuracy))
+            BulletText(text = stringResource(R.string.about_metric_macro_f1))
+            BulletText(text = stringResource(R.string.about_metric_banana_macro_f1))
+            BodyText(text = stringResource(R.string.about_model_score_note))
+        }
+
         InfoCard(title = stringResource(R.string.about_limits_title)) {
             BulletText(text = stringResource(R.string.about_limit_uncertainty))
             BulletText(text = stringResource(R.string.about_limit_overlap))
+            BulletText(text = stringResource(R.string.about_limit_screening))
             BulletText(text = stringResource(R.string.about_limit_testing))
             BulletText(text = stringResource(R.string.about_limit_no_rates))
         }
 
-        InfoCard(
-            title = stringResource(R.string.about_classes_title),
-            body = stringResource(R.string.about_classes_body),
-        )
+        InfoCard(title = stringResource(R.string.about_classes_title)) {
+            BodyText(text = stringResource(R.string.about_classes_body))
+            AboutClassInfo.items.forEachIndexed { index, item ->
+                ClassInfoRow(item = item)
+                if (index < AboutClassInfo.items.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+        }
 
         CautionCard(
             title = stringResource(R.string.about_dataset_title),
             body = stringResource(R.string.about_dataset_body),
+        )
+    }
+}
+
+@Composable
+private fun ClassInfoRow(
+    item: AboutClassInfoItem,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = "${item.modelOrder}. ${item.displayLabel}",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.about_class_internal_label, item.internalLabel),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = stringResource(item.noteResId),
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (item.isSupplemental) {
+                CautionContent
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
         )
     }
 }
