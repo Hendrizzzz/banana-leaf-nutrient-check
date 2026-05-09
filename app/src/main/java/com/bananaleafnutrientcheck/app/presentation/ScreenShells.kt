@@ -1,8 +1,23 @@
 package com.bananaleafnutrientcheck.app.presentation
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import android.view.Surface
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +29,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,16 +41,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import com.bananaleafnutrientcheck.app.R
+import com.bananaleafnutrientcheck.app.data.image.AppPrivateCaptureStore
 
 private val CautionContainer = Color(0xFFFFF8E1)
 private val CautionContent = Color(0xFF8A5000)
@@ -85,6 +115,7 @@ fun HomeScreen(
 fun ScanScreen(
     uiState: ScanUiState = ScanUiState(),
     onImageSelected: (String?) -> Unit = {},
+    onCameraImageCaptured: (String?) -> Unit = {},
     onClearImage: () -> Unit = {},
     onAnalyzeImage: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -105,9 +136,8 @@ fun ScanScreen(
             body = stringResource(R.string.scan_guidance_body),
         )
 
-        PlaceholderCard(
-            title = stringResource(R.string.scan_take_photo_title),
-            body = stringResource(R.string.scan_take_photo_body),
+        CameraCaptureCard(
+            onImageCaptured = onCameraImageCaptured,
         )
 
         PhotoPickerCard(
@@ -191,6 +221,384 @@ fun AboutScreen(modifier: Modifier = Modifier) {
             title = stringResource(R.string.about_dataset_title),
             body = stringResource(R.string.about_dataset_body),
         )
+    }
+}
+
+@Composable
+private fun CameraCaptureCard(
+    onImageCaptured: (String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val activity = context.findActivity()
+    val captureStore = remember(context) {
+        AppPrivateCaptureStore(context.applicationContext)
+    }
+    var hasCameraPermission by remember {
+        mutableStateOf(context.hasCameraPermission())
+    }
+    var permissionRequested by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var permissionDenied by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showCamera by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var captureError by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            permissionRequested = true
+            hasCameraPermission = isGranted
+            permissionDenied = !isGranted
+            captureError = false
+            showCamera = isGranted
+        },
+    )
+    val shouldShowRationale = activity?.let { currentActivity ->
+        ActivityCompat.shouldShowRequestPermissionRationale(
+            currentActivity,
+            Manifest.permission.CAMERA,
+        )
+    } == true
+    val permissionPermanentlyDenied = permissionRequested &&
+        permissionDenied &&
+        !shouldShowRationale &&
+        !hasCameraPermission
+
+    DisposableEffect(context, lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasCameraPermission = context.hasCameraPermission()
+                if (!hasCameraPermission) {
+                    showCamera = false
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = CardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CardTitle(text = stringResource(R.string.scan_take_photo_title))
+            BodyText(text = stringResource(R.string.scan_take_photo_body))
+
+            Button(
+                onClick = {
+                    captureError = false
+                    if (hasCameraPermission) {
+                        permissionDenied = false
+                        showCamera = true
+                    } else {
+                        permissionRequested = true
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+                shape = CardShape,
+            ) {
+                Text(text = stringResource(R.string.scan_take_photo_action))
+            }
+
+            if (!hasCameraPermission && (shouldShowRationale || permissionDenied)) {
+                CameraPermissionNotice(
+                    permanentlyDenied = permissionPermanentlyDenied,
+                    permissionDenied = permissionDenied,
+                    showRationale = shouldShowRationale,
+                    onRetryPermission = {
+                        permissionRequested = true
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                    onOpenSettings = {
+                        context.openAppPermissionSettings()
+                    },
+                )
+            }
+
+            if (captureError) {
+                CameraStatusNotice(
+                    title = stringResource(R.string.scan_camera_unavailable_title),
+                    body = stringResource(R.string.scan_camera_unavailable_body),
+                )
+            }
+
+            if (showCamera && hasCameraPermission) {
+                CameraPreviewCapture(
+                    captureStore = captureStore,
+                    onImageCaptured = { imageUri ->
+                        captureError = false
+                        showCamera = false
+                        onImageCaptured(imageUri)
+                    },
+                    onCaptureError = {
+                        captureError = true
+                        showCamera = false
+                    },
+                    onClose = {
+                        showCamera = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CameraPreviewCapture(
+    captureStore: AppPrivateCaptureStore,
+    onImageCaptured: (String?) -> Unit,
+    onCaptureError: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var previewView by remember {
+        mutableStateOf<PreviewView?>(null)
+    }
+    var imageCapture by remember {
+        mutableStateOf<ImageCapture?>(null)
+    }
+    var isCapturing by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val mainExecutor = remember(context) {
+        ContextCompat.getMainExecutor(context)
+    }
+    val cameraProviderFuture = remember(context) {
+        ProcessCameraProvider.getInstance(context)
+    }
+
+    DisposableEffect(cameraProviderFuture, lifecycleOwner, previewView) {
+        val view = previewView ?: return@DisposableEffect onDispose { }
+        var disposed = false
+        val listener = Runnable {
+            if (disposed) {
+                return@Runnable
+            }
+
+            runCatching {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder()
+                    .build()
+                    .also { cameraPreview ->
+                        cameraPreview.setSurfaceProvider(view.surfaceProvider)
+                    }
+                val captureUseCase = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .setTargetRotation(view.display?.rotation ?: Surface.ROTATION_0)
+                    .build()
+
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    captureUseCase,
+                )
+                imageCapture = captureUseCase
+            }.onFailure {
+                imageCapture = null
+                onCaptureError()
+            }
+        }
+        cameraProviderFuture.addListener(listener, mainExecutor)
+
+        onDispose {
+            disposed = true
+            imageCapture = null
+            if (cameraProviderFuture.isDone) {
+                runCatching {
+                    cameraProviderFuture.get().unbindAll()
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(4f / 3f)
+                .clip(CardShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            AndroidView(
+                factory = { viewContext ->
+                    PreviewView(viewContext).apply {
+                        scaleType = PreviewView.ScaleType.FILL_CENTER
+                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                    }
+                },
+                update = { view ->
+                    previewView = view
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        Button(
+            onClick = {
+                val captureUseCase = imageCapture ?: return@Button
+                val captureFile = runCatching {
+                    captureStore.createCaptureFile()
+                }.getOrNull()
+                if (captureFile == null) {
+                    onCaptureError()
+                    return@Button
+                }
+                captureUseCase.targetRotation = previewView?.display?.rotation ?: Surface.ROTATION_0
+                isCapturing = true
+                val outputOptions = ImageCapture.OutputFileOptions.Builder(captureFile).build()
+                captureUseCase.takePicture(
+                    outputOptions,
+                    mainExecutor,
+                    object : ImageCapture.OnImageSavedCallback {
+                        override fun onImageSaved(
+                            outputFileResults: ImageCapture.OutputFileResults,
+                        ) {
+                            isCapturing = false
+                            onImageCaptured(captureStore.uriFor(captureFile).toString())
+                        }
+
+                        override fun onError(exception: ImageCaptureException) {
+                            isCapturing = false
+                            runCatching {
+                                captureFile.delete()
+                            }
+                            onCaptureError()
+                        }
+                    },
+                )
+            },
+            enabled = imageCapture != null && !isCapturing,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+            shape = CardShape,
+        ) {
+            Text(
+                text = stringResource(
+                    if (isCapturing) {
+                        R.string.scan_capturing_photo_action
+                    } else {
+                        R.string.scan_capture_photo_action
+                    },
+                ),
+            )
+        }
+
+        OutlinedButton(
+            onClick = onClose,
+            enabled = !isCapturing,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+            shape = CardShape,
+        ) {
+            Text(text = stringResource(R.string.scan_close_camera_action))
+        }
+    }
+}
+
+@Composable
+private fun CameraPermissionNotice(
+    permanentlyDenied: Boolean,
+    permissionDenied: Boolean,
+    showRationale: Boolean,
+    onRetryPermission: () -> Unit,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val title = when {
+        permanentlyDenied -> stringResource(R.string.scan_camera_permission_blocked_title)
+        permissionDenied -> stringResource(R.string.scan_camera_permission_denied_title)
+        showRationale -> stringResource(R.string.scan_camera_permission_rationale_title)
+        else -> stringResource(R.string.scan_camera_permission_denied_title)
+    }
+    val body = when {
+        permanentlyDenied -> stringResource(R.string.scan_camera_permission_blocked_body)
+        permissionDenied -> stringResource(R.string.scan_camera_permission_denied_body)
+        showRationale -> stringResource(R.string.scan_camera_permission_rationale_body)
+        else -> stringResource(R.string.scan_camera_permission_denied_body)
+    }
+
+    CameraStatusNotice(
+        title = title,
+        body = body,
+        modifier = modifier,
+    ) {
+        if (permanentlyDenied) {
+            OutlinedButton(
+                onClick = onOpenSettings,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+                shape = CardShape,
+            ) {
+                Text(text = stringResource(R.string.scan_camera_open_settings_action))
+            }
+        } else {
+            OutlinedButton(
+                onClick = onRetryPermission,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp),
+                shape = CardShape,
+            ) {
+                Text(text = stringResource(R.string.scan_camera_permission_retry_action))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CameraStatusNotice(
+    title: String,
+    body: String,
+    modifier: Modifier = Modifier,
+    action: @Composable ColumnScope.() -> Unit = {},
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .background(CautionContainer)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CardTitle(text = title, color = CautionContent)
+        Text(
+            text = body,
+            style = MaterialTheme.typography.bodyMedium,
+            color = CautionContent,
+        )
+        action()
     }
 }
 
@@ -397,6 +805,7 @@ private fun ScreenContent(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -458,31 +867,6 @@ private fun InfoCard(
         ) {
             CardTitle(text = title)
             content()
-        }
-    }
-}
-
-@Composable
-private fun PlaceholderCard(
-    title: String,
-    body: String,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = CardShape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            CardTitle(text = title)
-            BodyText(text = body)
         }
     }
 }
@@ -575,4 +959,25 @@ private fun BulletText(text: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+private fun Context.hasCameraPermission(): Boolean =
+    ContextCompat.checkSelfPermission(
+        this,
+        Manifest.permission.CAMERA,
+    ) == PackageManager.PERMISSION_GRANTED
+
+private fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
+
+private fun Context.openAppPermissionSettings() {
+    val settingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.fromParts("package", packageName, null)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    startActivity(settingsIntent)
 }

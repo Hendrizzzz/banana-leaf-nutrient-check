@@ -99,6 +99,7 @@ fun BananaNavHost(
                     ScanScreen(
                         uiState = scanUiState,
                         onImageSelected = scanViewModel::onPhotoPickerResult,
+                        onCameraImageCaptured = scanViewModel::onCameraCaptureResult,
                         onClearImage = scanViewModel::clearSelectedImage,
                         onAnalyzeImage = scanViewModel::analyzeSelectedImage,
                     )

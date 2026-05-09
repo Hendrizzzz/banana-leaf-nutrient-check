@@ -45,6 +45,18 @@ class ScanViewModelTest {
     }
 
     @Test
+    fun cameraCaptureResultStoresPrivateFileUriReference() {
+        val viewModel = ScanViewModel(FakeScanImageAnalyzer())
+        val imageUri = "file:///data/user/0/com.bananaleafnutrientcheck.app/cache/captured-leaf-images/banana-leaf.jpg"
+
+        viewModel.onCameraCaptureResult(imageUri)
+
+        assertTrue(viewModel.uiState.value.hasSelectedImage)
+        assertTrue(viewModel.uiState.value.canAnalyze)
+        assertEquals(imageUri, viewModel.uiState.value.selectedImageUri)
+    }
+
+    @Test
     fun photoPickerCancellationKeepsExistingStateWithoutError() {
         val viewModel = ScanViewModel(FakeScanImageAnalyzer())
         val imageUri = "content://media/picker/original-leaf"
@@ -91,6 +103,25 @@ class ScanViewModelTest {
         assertTrue(viewModel.uiState.value.hasSelectedImage)
         assertTrue(viewModel.uiState.value.canAnalyze)
         assertEquals(replacementUri, viewModel.uiState.value.selectedImageUri)
+        assertNull(viewModel.uiState.value.result)
+        assertNull(viewModel.uiState.value.analysisError)
+    }
+
+    @Test
+    fun cameraCaptureReplacesPreviousImageReferenceAndClearsResult() {
+        val viewModel = ScanViewModel(FakeScanImageAnalyzer())
+        val capturedImageUri = "file:///data/user/0/com.bananaleafnutrientcheck.app/cache/captured-leaf-images/new-leaf.jpg"
+        viewModel.onPhotoPickerResult("content://media/picker/original-leaf")
+        viewModel.analyzeSelectedImage()
+        drainMain()
+
+        assertTrue(viewModel.uiState.value.result != null)
+
+        viewModel.onCameraCaptureResult(capturedImageUri)
+
+        assertTrue(viewModel.uiState.value.hasSelectedImage)
+        assertTrue(viewModel.uiState.value.canAnalyze)
+        assertEquals(capturedImageUri, viewModel.uiState.value.selectedImageUri)
         assertNull(viewModel.uiState.value.result)
         assertNull(viewModel.uiState.value.analysisError)
     }

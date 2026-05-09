@@ -35,6 +35,14 @@ class ScanViewModel(
     private var analyzeJob: Job? = null
 
     fun onPhotoPickerResult(imageUri: String?) {
+        selectImage(imageUri)
+    }
+
+    fun onCameraCaptureResult(imageUri: String?) {
+        selectImage(imageUri)
+    }
+
+    private fun selectImage(imageUri: String?) {
         if (imageUri.isNullOrBlank()) {
             return
         }
