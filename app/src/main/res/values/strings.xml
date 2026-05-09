@@ -1,4 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Banana Leaf Nutrient Check</string>
+    <string name="destination_home">Home</string>
+    <string name="destination_scan">Scan</string>
+    <string name="destination_about">About</string>
+
+    <string name="home_heading">Banana Leaf Nutrient Check</string>
+    <string name="home_body">This prototype uses AI to screen banana leaf images for possible nutrient-deficiency symptoms. It is not a replacement for laboratory testing or expert agricultural advice.</string>
+    <string name="home_caution_title">Preliminary screening only</string>
+    <string name="home_caution_body">Use future screening results as model suggestions with uncertainty, not field decisions.</string>
+    <string name="home_scan_action">Open image input</string>
+    <string name="home_about_action">View limitations</string>
+
+    <string name="scan_heading">Image input</string>
+    <string name="scan_intro">Prepare a clear banana leaf photo before starting image screening.</string>
+    <string name="scan_guidance_title">Capture guidance</string>
+    <string name="scan_guidance_body">Use one banana leaf, good lighting, minimal shadow, and fill the frame with the affected leaf area.</string>
+    <string name="scan_take_photo_title">Take photo</string>
+    <string name="scan_take_photo_body">Photo capture will be connected in a later ticket.</string>
+    <string name="scan_choose_image_title">Choose image</string>
+    <string name="scan_choose_image_body">Gallery selection will be connected in a later ticket.</string>
+    <string name="scan_not_active_title">Screening not active yet</string>
+    <string name="scan_not_active_body">This shell does not decode images or run model screening.</string>
+
+    <string name="about_heading">About this prototype</string>
+    <string name="about_intro">This app is being built for classroom and research review of on-device banana leaf nutrient screening.</string>
+    <string name="about_limits_title">Limitations</string>
+    <string name="about_limit_uncertainty">Model output can be uncertain and should be reviewed with field context.</string>
+    <string name="about_limit_overlap">Visual symptoms can overlap across nutrient stress, lighting, crop age, and image quality.</string>
+    <string name="about_limit_testing">Confirm with expert inspection or laboratory/soil testing.</string>
+    <string name="about_limit_no_rates">Do not use this prototype to choose field treatments or application rates.</string>
+    <string name="about_classes_title">Class labels</string>
+    <string name="about_classes_body">Model label order: boron, calcium, healthy, iron, magnesium, manganese, nitrogen, phosphorous, potassium, sulphur, zinc.</string>
+    <string name="about_dataset_title">Dataset caution</string>
+    <string name="about_dataset_body">Nitrogen and phosphorous are maize-derived supplemental classes and are not banana-validated.</string>
 </resources>

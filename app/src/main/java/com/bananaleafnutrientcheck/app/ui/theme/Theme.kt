@@ -9,16 +9,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF2F6B3F),
+    primary = Color(0xFF1B5E20),
     onPrimary = Color.White,
     secondary = Color(0xFF735C00),
     onSecondary = Color.White,
     tertiary = Color(0xFF38656A),
     onTertiary = Color.White,
-    background = Color(0xFFFAFCF8),
-    onBackground = Color(0xFF191D18),
-    surface = Color(0xFFFAFCF8),
-    onSurface = Color(0xFF191D18),
+    background = Color(0xFFF7FBF1),
+    onBackground = Color(0xFF191D17),
+    surface = Color.White,
+    onSurface = Color(0xFF191D17),
+    surfaceVariant = Color(0xFFE0E4DA),
+    onSurfaceVariant = Color(0xFF41493E),
+    outlineVariant = Color(0xFFC0C9BB),
+    error = Color(0xFFBA1A1A),
 )
 
 private val DarkColors = darkColorScheme(
@@ -35,7 +39,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun BananaDiagnosisTheme(
+fun BananaLeafNutrientTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
