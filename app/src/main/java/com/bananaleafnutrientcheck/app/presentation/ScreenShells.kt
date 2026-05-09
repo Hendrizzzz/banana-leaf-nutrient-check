@@ -50,6 +50,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -170,6 +171,19 @@ fun ScanScreen(
             ),
         )
     }
+    var isCameraActive by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val hasPreviewImage = uiState.hasSelectedImage && uiState.selectedImageUri != null
+    val shouldShowImageSource = !uiState.isAnalyzing &&
+        uiState.result == null &&
+        !hasPreviewImage
+
+    LaunchedEffect(uiState.selectedImageUri, uiState.result, uiState.isAnalyzing) {
+        if (!shouldShowImageSource) {
+            isCameraActive = false
+        }
+    }
 
     ScreenContent(modifier = modifier) {
         when {
@@ -178,7 +192,6 @@ fun ScanScreen(
                     result = uiState.result,
                     selectedImageUri = uiState.selectedImageUri,
                     onScanAgain = onClearImage,
-                    onChooseImage = launchImagePicker,
                 )
             }
 
@@ -191,7 +204,6 @@ fun ScanScreen(
                     selectedImageUri = uiState.selectedImageUri,
                     canAnalyze = uiState.canAnalyze,
                     onAnalyzeImage = onAnalyzeImage,
-                    onChooseImage = launchImagePicker,
                     onClearImage = onClearImage,
                 )
             }
@@ -208,15 +220,19 @@ fun ScanScreen(
             )
         }
 
-        if (!uiState.isAnalyzing) {
+        if (shouldShowImageSource) {
             SectionHeader(text = stringResource(R.string.scan_image_source_section))
             CameraCaptureCard(
                 onImageCaptured = onCameraImageCaptured,
+                onCameraActiveChanged = { isActive ->
+                    isCameraActive = isActive
+                },
             )
-            PhotoPickerCard(
-                hasSelectedImage = uiState.hasSelectedImage,
-                onChooseImage = launchImagePicker,
-            )
+            if (!isCameraActive) {
+                PhotoPickerCard(
+                    onChooseImage = launchImagePicker,
+                )
+            }
         }
     }
 }
@@ -307,7 +323,6 @@ private fun PreviewReadyPanel(
     selectedImageUri: String,
     canAnalyze: Boolean,
     onAnalyzeImage: () -> Unit,
-    onChooseImage: () -> Unit,
     onClearImage: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -322,11 +337,6 @@ private fun PreviewReadyPanel(
             iconResId = R.drawable.ic_lab_24,
             enabled = canAnalyze,
             onClick = onAnalyzeImage,
-        )
-        SecondaryActionButton(
-            text = stringResource(R.string.scan_change_image_action),
-            iconResId = R.drawable.ic_photo_24,
-            onClick = onChooseImage,
         )
         SecondaryActionButton(
             text = stringResource(R.string.scan_clear_image_action),
@@ -540,6 +550,7 @@ private fun ClassInfoRow(
 @Composable
 private fun CameraCaptureCard(
     onImageCaptured: (String?) -> Unit,
+    onCameraActiveChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -585,6 +596,16 @@ private fun CameraCaptureCard(
         !shouldShowRationale &&
         !hasCameraPermission
 
+    LaunchedEffect(showCamera, hasCameraPermission) {
+        onCameraActiveChanged(showCamera && hasCameraPermission)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            onCameraActiveChanged(false)
+        }
+    }
+
     DisposableEffect(context, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -608,22 +629,24 @@ private fun CameraCaptureCard(
                 title = stringResource(R.string.scan_take_photo_title),
                 iconResId = R.drawable.ic_camera_24,
             )
-            BodyText(text = stringResource(R.string.scan_take_photo_body))
+            if (!showCamera || !hasCameraPermission) {
+                BodyText(text = stringResource(R.string.scan_take_photo_body))
 
-            PrimaryActionButton(
-                text = stringResource(R.string.scan_take_photo_action),
-                iconResId = R.drawable.ic_camera_24,
-                onClick = {
-                    captureError = false
-                    if (hasCameraPermission) {
-                        permissionDenied = false
-                        showCamera = true
-                    } else {
-                        permissionRequested = true
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                },
-            )
+                PrimaryActionButton(
+                    text = stringResource(R.string.scan_take_photo_action),
+                    iconResId = R.drawable.ic_camera_24,
+                    onClick = {
+                        captureError = false
+                        if (hasCameraPermission) {
+                            permissionDenied = false
+                            showCamera = true
+                        } else {
+                            permissionRequested = true
+                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                )
+            }
 
             if (!hasCameraPermission && (shouldShowRationale || permissionDenied)) {
                 CameraPermissionNotice(
@@ -893,7 +916,6 @@ private fun CameraStatusNotice(
 
 @Composable
 private fun PhotoPickerCard(
-    hasSelectedImage: Boolean,
     onChooseImage: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -906,20 +928,10 @@ private fun PhotoPickerCard(
                 iconResId = R.drawable.ic_photo_24,
             )
             BodyText(
-                text = if (hasSelectedImage) {
-                    stringResource(R.string.scan_selected_image_body)
-                } else {
-                    stringResource(R.string.scan_choose_image_body)
-                },
+                text = stringResource(R.string.scan_choose_image_body),
             )
             SecondaryActionButton(
-                text = stringResource(
-                    if (hasSelectedImage) {
-                        R.string.scan_change_image_action
-                    } else {
-                        R.string.scan_choose_image_action
-                    },
-                ),
+                text = stringResource(R.string.scan_choose_image_action),
                 iconResId = R.drawable.ic_photo_24,
                 onClick = onChooseImage,
             )
@@ -932,7 +944,6 @@ private fun ResultCard(
     result: ScanResultUiModel,
     selectedImageUri: String?,
     onScanAgain: () -> Unit,
-    onChooseImage: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -1018,21 +1029,11 @@ private fun ResultCard(
             }
         }
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            PrimaryActionButton(
-                text = stringResource(R.string.scan_scan_again_action),
-                iconResId = R.drawable.ic_scan_24,
-                onClick = onScanAgain,
-            )
-            SecondaryActionButton(
-                text = stringResource(R.string.scan_change_image_action),
-                iconResId = R.drawable.ic_photo_24,
-                onClick = onChooseImage,
-            )
-        }
+        PrimaryActionButton(
+            text = stringResource(R.string.scan_scan_again_action),
+            iconResId = R.drawable.ic_scan_24,
+            onClick = onScanAgain,
+        )
     }
 }
 
