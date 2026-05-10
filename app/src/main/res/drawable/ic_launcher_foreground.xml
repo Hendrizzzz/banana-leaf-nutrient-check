@@ -4,32 +4,53 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Background Layer (Solid Color Resource) -->
+    <!-- In practice, this would be @color/ic_launcher_background -->
     <path
-        android:fillColor="#F7FFF2"
-        android:pathData="M28,78C28,65 37,52 54,44C59,50 63,57 66,64C57,76 42,82 28,78Z" />
-    <path
-        android:fillColor="#F7FFF2"
-        android:pathData="M51,42C61,28 76,22 90,29C99,36 96,57 85,67C74,70 63,61 56,51Z" />
-    <path
-        android:fillColor="#F7FFF2"
-        android:pathData="M39,61L55,45L60,55L50,69Z" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M24,86L57,50"
-        android:strokeWidth="6"
-        android:strokeColor="#F7FFF2"
-        android:strokeLineCap="round" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M33,77L80,31"
-        android:strokeWidth="2.4"
-        android:strokeColor="#115E17"
-        android:strokeLineCap="round" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M43,55L43,49L49,49M63,49L69,49L69,55M43,61L43,67L49,67M63,67L69,67L69,61"
-        android:strokeWidth="3.1"
-        android:strokeColor="#115E17"
-        android:strokeLineCap="square"
-        android:strokeLineJoin="miter" />
+        android:pathData="M0,0h108v108h-108z"
+        android:fillColor="#1B5E20"/>
+
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.9"
+        android:scaleY="0.9">
+
+        <!-- Stylized Banana Leaf -->
+        <path
+            android:pathData="M25,83c0,0 5,-28 25,-48c20,-20 38,-15 40,-13c2,2 3,20 -17,40c-20,20 -48,21 -48,21z"
+            android:fillColor="#F7FBF1"/>
+
+        <!-- Midrib (Base) -->
+        <path
+            android:pathData="M22,86c0,0 13,-13 13,-13"
+            android:strokeColor="#F7FBF1"
+            android:strokeWidth="4.5"
+            android:strokeLineCap="round"/>
+
+        <!-- Midrib (Internal) -->
+        <path
+            android:pathData="M35,73L85,27"
+            android:strokeColor="#1B5E20"
+            android:strokeWidth="2"
+            android:strokeAlpha="0.6"
+            android:strokeLineCap="round"/>
+
+        <!-- Scan/Focus Frame -->
+        <path
+            android:pathData="M42,46v-6h6M60,40h6v6M66,58v6h-6M48,64h-6v-6"
+            android:strokeColor="#1B5E20"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"/>
+
+        <!-- Checkmark Motif -->
+        <path
+            android:pathData="M50,52l3,3l5,-6"
+            android:strokeColor="#1B5E20"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"/>
+    </group>
 </vector>
